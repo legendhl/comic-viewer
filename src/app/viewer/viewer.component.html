@@ -1,0 +1,33 @@
+<div class="container">
+  <div class="main" id="div" (mousewheel)="doSomething()">
+    <img class="img" id="img" (dblclick)="resetSize()" (load)="resize()" />
+  </div>
+  <div class="open-file" id="open-file" [hidden]="!showOpenFileBtn">
+    <h2>Kan Kan</h2>
+    <button (click)="openImage()" id="btn-open-file">打开图片</button>
+  </div>
+  <div style="right: 0;" class="btn-to" (click)="next()" id="btn-to-r">
+    <div class="btn-txt">→</div>
+  </div>
+  <div style="left: 0;" class="btn-to" (click)="previous()" id="btn-to-l">
+    <div class="btn-txt">←</div>
+  </div>
+  <div class="title-bar" id="title-bar">
+    <!-- ondblclick="maxWindow()" -->
+    <div id="title" class="title" (dblclick)="maxWindow()"></div>
+    <div style="float: left;">
+      <button (click)="previous()">◀</button>
+      <button (click)="next()">▶</button>
+    </div>
+    <div style="display: block; float: right; padding-right: 90px;">
+      <button (click)="realSize()">↗</button>
+      <button (click)="initParams()">↙</button>
+      <button (click)="setWallpaper()" id="btn-wallpaper">♡</button>
+      <!-- <button (click)="showMenu()">菜单</button> -->
+      <button (click)="changeTheme()" id="btn-theme">◐</button>
+    </div>
+  </div>
+  <div class="foot-bar" id="foot-bar">
+    <label id="zoom-per">100%</label>
+  </div>
+</div>
