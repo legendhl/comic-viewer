@@ -5,6 +5,8 @@ try {
   let application;
   let appStart = true;
 
+  // app.commandLine.appendSwitch('disable-web-security');
+
   // electron 完成初始化 ready 后，进行应用初始化
   app.on('ready', () => {
     // 打开开发者工具

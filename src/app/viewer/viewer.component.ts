@@ -1,22 +1,36 @@
-import { Component, OnInit } from '@angular/core';
-import { ipcRenderer } from 'electron';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ipcRenderer, remote } from 'electron';
 
 @Component({
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
+  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ViewerComponent implements OnInit {
   showOpenFileBtn: boolean;
+  imgSrc: string;
 
-  constructor() {}
+  constructor() {
+  }
 
   ngOnInit(): void {
     this.showOpenFileBtn = true;
+    ipcRenderer.on('imageOpened', (event, msg) => {
+      if (msg === 'ok') {
+        const data = remote.getGlobal('data');
+        const { current, images } = data;
+        if (images.length > 0) {
+          this.showOpenFileBtn = false;
+          this.imgSrc = `file://${images[current]}`;
+        } else {
+          console.log('no image opened');
+        }
+      }
+    });
   }
 
   openImage(): void {
-    console.log('openImage');
     ipcRenderer.send('openImage');
   }
 

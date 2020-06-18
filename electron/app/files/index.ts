@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ImageData } from '../../data/data.interface';
 
-export const supportFileTypes = ['.jpg', '.jpeg', '.png', '.gif', '.ico', '.bmp'];
+export const supportFileTypes = ['jpg', 'jpeg', 'png', 'gif', 'ico', 'bmp'];
 
 function getFolderPath(filepath = '') {
   return path.dirname(filepath);
@@ -17,7 +17,7 @@ function getFileType(filepath = '') {
 }
 
 function isImage(file) {
-  const fileType = getFileType(file).toLowerCase();
+  const fileType = getFileType(file).toLowerCase().replace('.', '');
   return supportFileTypes.indexOf(fileType) >= 0;
 }
 
@@ -25,7 +25,7 @@ function setGlobalData(imageData: ImageData) {
   global.data = imageData;
 }
 
-export function getImageFiles(filepath) {
+export function getImageFiles(filepath: string): void {
   console.log(`filepath is ${filepath}`);
   const filename = getFileName(filepath);
   const folderPath = getFolderPath(filepath);
@@ -36,7 +36,7 @@ export function getImageFiles(filepath) {
   };
   if (folderPath === '') {
     console.log('empty img');
-    return data;
+    return;
   }
   const files = fs.readdirSync(folderPath);
   if (files) {
@@ -51,5 +51,5 @@ export function getImageFiles(filepath) {
       }
     });
   }
-  return data;
+  setGlobalData(data);
 }

@@ -7,7 +7,7 @@ export function showOpenFileDialog() {
       title: '打开文件',
       defaultPath: '',
       properties: ['openFile', 'openDirectory'],
-      filters: [{ name: 'Img', extensions: supportFileTypes }],
+      filters: [{ name: 'Images', extensions: supportFileTypes }],
     })
     .then((result) => {
       if (result.filePaths.length > 0) {

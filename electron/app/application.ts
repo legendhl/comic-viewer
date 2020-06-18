@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, nativeTheme, dialog, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import { URL } from 'url';
 import { showOpenFileDialog } from './dialog';
 import { getImageFiles } from './files';
@@ -28,6 +28,7 @@ export class Application {
       width: 800,
       height: 600,
       webPreferences: {
+        webSecurity: false,
         nodeIntegration: true,
       },
     });

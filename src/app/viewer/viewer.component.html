@@ -1,6 +1,6 @@
 <div class="container">
   <div class="main" id="div" (mousewheel)="doSomething()">
-    <img class="img" id="img" (dblclick)="resetSize()" (load)="resize()" />
+    <img class="img" id="img" [src]="imgSrc" (dblclick)="resetSize()" (load)="resize()" />
   </div>
   <div class="open-file" id="open-file" [hidden]="!showOpenFileBtn">
     <h2>Kan Kan</h2>
