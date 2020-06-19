@@ -27,10 +27,10 @@ export class ViewerComponent implements OnInit, OnDestroy {
         const { current, images } = data;
         if (images.length > 0) {
           this.showOpenFileBtn = false;
-          this.imgSrc = `file://${images[current]}`;
+          this.setImage(images[current]);
           this.ref.detectChanges();
         } else {
-          console.log('no image opened');
+          console.error('no image opened');
         }
       }
     });
@@ -48,8 +48,11 @@ export class ViewerComponent implements OnInit, OnDestroy {
     ipcRenderer.send('openImage');
   }
 
+  private setImage(imageUrl: string): void {
+    this.imgSrc = `file://${imageUrl}`;
+  }
+
   previous(): void {
-    console.log('previous');
     if (!this.data) {
       return;
     }
@@ -57,14 +60,13 @@ export class ViewerComponent implements OnInit, OnDestroy {
     const length = images.length;
     if (length > 0) {
       this.data.current = (this.data.current - 1 + length) % length;
-      this.imgSrc = `file://${images[this.data.current]}`;
+      this.setImage(images[this.data.current]);
     } else {
-      console.log('no image opened');
+      console.error('no image opened');
     }
   }
 
   next(): void {
-    console.log('next');
     if (!this.data) {
       return;
     }
@@ -72,9 +74,9 @@ export class ViewerComponent implements OnInit, OnDestroy {
     const length = images.length;
     if (length > 0) {
       this.data.current = (this.data.current + 1) % length;
-      this.imgSrc = `file://${images[this.data.current]}`;
+      this.setImage(images[this.data.current]);
     } else {
-      console.log('no image opened');
+      console.error('no image opened');
     }
   }
 
@@ -119,7 +121,6 @@ export class ViewerComponent implements OnInit, OnDestroy {
         this.next();
         break;
       default:
-        console.log($event.key);
         return;
     }
   }

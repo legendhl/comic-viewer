@@ -1,7 +1,8 @@
 import { dialog } from 'electron';
-import { supportFileTypes } from '../files';
+import { supportImageFileTypes, supportZipFileTypes } from '../files';
 
 export function showOpenFileDialog() {
+  const supportFileTypes = [].concat(supportImageFileTypes, supportZipFileTypes);
   return dialog
     .showOpenDialog({
       title: '打开文件',

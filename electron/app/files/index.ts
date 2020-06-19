@@ -1,8 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ImageData } from '../../data/data.interface';
+import { extractFiles } from './extract';
 
-export const supportFileTypes = ['jpg', 'jpeg', 'png', 'gif', 'ico', 'bmp'];
+export const supportImageFileTypes = ['jpg', 'jpeg', 'png', 'gif', 'ico', 'bmp'];
+export const supportZipFileTypes = ['zip'];
 
 function getFolderPath(filepath = '') {
   return path.dirname(filepath);
@@ -13,43 +15,67 @@ function getFileName(filepath = '') {
 }
 
 function getFileType(filepath = '') {
-  return path.extname(filepath);
+  return path.extname(filepath).toLowerCase().replace('.', '');
 }
 
 function isImage(file) {
-  const fileType = getFileType(file).toLowerCase().replace('.', '');
-  return supportFileTypes.indexOf(fileType) >= 0;
+  const fileType = getFileType(file);
+  return supportImageFileTypes.indexOf(fileType) >= 0;
+}
+
+function isZipFile(file) {
+  const fileType = getFileType(file);
+  return supportZipFileTypes.indexOf(fileType) >= 0;
+}
+
+function isDirectory(filepath) {
+  const stat = fs.lstatSync(filepath);
+  return stat.isDirectory();
 }
 
 function setGlobalData(imageData: ImageData) {
   global.data = imageData;
 }
 
-export function getImageFiles(filepath: string): void {
-  console.log(`filepath is ${filepath}`);
-  const filename = getFileName(filepath);
-  const folderPath = getFolderPath(filepath);
+function getImageFilesFromDir(folderPath: string, filename?: string): Promise<any> {
   const data: ImageData = {
     current: 0,
     images: [],
-    // isDark: nativeTheme.shouldUseDarkColors, //设置主题模式
   };
   if (folderPath === '') {
-    console.log('empty img');
+    console.error('wrong folder');
     return;
   }
   const files = fs.readdirSync(folderPath);
+
   if (files) {
-    let i = 0;
-    files.forEach((file) => {
-      if (isImage(file)) {
-        data.images.push(path.join(folderPath, file));
-        if (filename === file) {
-          data.current = i;
-        }
-        i++;
-      }
-    });
+    const imageFiles = files.filter((file) => isImage(file));
+    const index = imageFiles.indexOf(filename);
+    data.current = index < 0 ? 0 : index;
+    data.images = imageFiles.map((file) => path.join(folderPath, file));
   }
   setGlobalData(data);
+  return Promise.resolve();
+}
+
+function getImageFilesFromZip(filepath: string): Promise<any> {
+  return extractFiles(filepath)
+    .then((imageTempDir) => getImageFilesFromDir(imageTempDir))
+    .catch((err) => {
+      console.error('UNZIP ERROR', err);
+    });
+}
+
+export function getImageFiles(filepath: string): Promise<any> {
+  if (isDirectory(filepath)) {
+    return getImageFilesFromDir(filepath);
+  } else {
+    const filename = getFileName(filepath);
+    const folderPath = getFolderPath(filepath);
+    if (isZipFile(filename)) {
+      return getImageFilesFromZip(filepath);
+    } else {
+      return getImageFilesFromDir(folderPath, filename);
+    }
+  }
 }

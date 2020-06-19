@@ -42,8 +42,8 @@ try {
 
   // GPU进程崩溃
   app.on('gpu-process-crashed', (event) => {
-    console.log(`event:${JSON.stringify(event)}`);
-    console.log('GPU进程崩溃，程序退出');
+    console.error(`event:${JSON.stringify(event)}`);
+    console.error('GPU进程崩溃，程序退出');
   });
 } catch (e) {
   console.error(e);

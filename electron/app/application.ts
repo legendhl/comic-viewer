@@ -116,8 +116,7 @@ export class Application {
   private openFileAndReply(event) {
     showOpenFileDialog().then((filepath) => {
       if (filepath) {
-        getImageFiles(filepath);
-        event.reply('imageOpened', 'ok');
+        getImageFiles(filepath).then((_) => event.reply('imageOpened', 'ok'));
       } else {
         event.reply('imageOpened', 'failed');
       }
