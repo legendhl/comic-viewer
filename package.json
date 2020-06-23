@@ -1,8 +1,8 @@
 {
-  "name": "comic-view",
+  "name": "comic-viewer",
   "description": "comic viewer",
   "author": "legendhl",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "platform": "darwin",
   "scripts": {
     "serve": "concurrently 'npm:serve-electron' 'npm:serve-ng' 'npm:open-electron' --color --prefix-colors 'gray,green,cyan'",

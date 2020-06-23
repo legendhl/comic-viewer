@@ -5,7 +5,7 @@ import { app } from 'electron';
 
 export function extractFiles(filepath: string): Promise<any> {
   const tempDir = app.getPath('temp');
-  const imageTempDir = path.join(tempDir, 'comic-view');
+  const imageTempDir = path.join(tempDir, 'comic-viewer');
   const imageCacheTempDir = path.join(imageTempDir, '__MACOSX');
 
   if (!fs.existsSync(imageTempDir)) {

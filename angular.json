@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "comic-view": {
+    "comic-viewer": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -67,18 +67,18 @@
         "serve": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "browserTarget": "comic-view:build"
+            "browserTarget": "comic-viewer:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "comic-view:build:production"
+              "browserTarget": "comic-viewer:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "comic-view:build"
+            "browserTarget": "comic-viewer:build"
           }
         },
         "test": {
@@ -104,16 +104,16 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "comic-view:serve"
+            "devServerTarget": "comic-viewer:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "comic-view:serve:production"
+              "devServerTarget": "comic-viewer:serve:production"
             }
           }
         }
       }
     }
   },
-  "defaultProject": "comic-view"
+  "defaultProject": "comic-viewer"
 }
