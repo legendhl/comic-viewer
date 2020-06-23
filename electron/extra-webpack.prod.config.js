@@ -11,4 +11,10 @@ module.exports = {
       },
     ],
   },
+  resolve: {
+    alias: {
+      ws: 'node_modules/ws/index.js',
+    },
+    extensions: ['.node'],
+  },
 };

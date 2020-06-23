@@ -1,8 +1,8 @@
+import { environment } from '../environments/environment';
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import { URL } from 'url';
 import { showOpenFileDialog } from './dialog';
 import { getImageFiles } from './files';
-// const environment = { production: false };
 
 export class Application {
   readonly baseUrl: URL;
@@ -11,7 +11,7 @@ export class Application {
 
   constructor() {
     global.data = { current: 0, images: [] };
-    this.baseUrl = new URL('http://localhost:4200');
+    this.baseUrl = new URL(environment.indexHtmlUrl);
   }
 
   init() {

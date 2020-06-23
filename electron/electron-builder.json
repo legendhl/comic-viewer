@@ -1,0 +1,28 @@
+{
+  "productName": "comic-viewer",
+  "appId": "com.legendhl.comic",
+  "copyright": "Copyright © 2020 legendhl",
+  "directories": {
+    "output": "release/"
+  },
+  "asar": false,
+  "files": [
+    "dist/**/*",
+    "!**/*.pdb",
+    "!**/*.dSYM",
+    "!**/*.map",
+    "!**/*.ts"
+  ],
+  "win": {
+    "icon": "electron/comic-viewer.ico",
+    "target": ["portable"]
+  },
+  "mac": {
+    "hardenedRuntime": true,
+    "entitlements": "electron/entitlements.mac.plist",
+    "entitlementsInherit": "electron/entitlements.mac.plist",
+    "icon": "electron/comic-viewer.icns",
+    "target": ["dmg"]
+  },
+  "compression": "maximum"
+}

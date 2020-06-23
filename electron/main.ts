@@ -1,3 +1,4 @@
+import { environment } from './environments/environment';
 import { app } from 'electron';
 import { Application } from './app/application';
 
@@ -10,11 +11,13 @@ try {
   // electron 完成初始化 ready 后，进行应用初始化
   app.on('ready', () => {
     // 打开开发者工具
-    app.on('web-contents-created', (event, webContents) => {
-      webContents.openDevTools({
-        mode: 'detach',
+    if (!environment.production) {
+      app.on('web-contents-created', (event, webContents) => {
+        webContents.openDevTools({
+          mode: 'detach',
+        });
       });
-    });
+    }
     application = new Application();
     application.init();
   });
