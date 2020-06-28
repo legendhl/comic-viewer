@@ -3,8 +3,8 @@ import * as path from 'path';
 import { ImageData } from '../../data/data.interface';
 import { extractFiles } from './extract';
 
-export const supportImageFileTypes = ['jpg', 'jpeg', 'png', 'gif', 'ico', 'bmp'];
-export const supportZipFileTypes = ['zip'];
+export const supportImageFileTypes = ['jpg', 'jpeg', 'png', 'apng', 'gif', 'ico', 'bmp', 'webp'];
+export const supportZipFileTypes = ['zip', 'rar', 'gz', '7z'];
 
 function getFolderPath(filepath = '') {
   return path.dirname(filepath);
@@ -38,6 +38,7 @@ function setGlobalData(imageData: ImageData) {
 }
 
 function getImageFilesFromDir(folderPath: string, filename?: string): Promise<any> {
+  console.log(folderPath, filename)
   const data: ImageData = {
     current: 0,
     images: [],
