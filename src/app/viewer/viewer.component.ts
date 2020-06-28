@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef 
 import { ipcRenderer, remote } from 'electron';
 import { EventManager } from '@angular/platform-browser';
 import { ImageData } from '../../../electron/data/data.interface';
+import { ComicModeEnum } from '../../../electron/config/type';
 
 @Component({
   selector: 'app-viewer',
@@ -12,6 +13,8 @@ export class ViewerComponent implements OnInit, OnDestroy {
   @ViewChild('img') imgElement: ElementRef<HTMLImageElement>;
   showOpenFileBtn: boolean;
   imgSrc: string;
+  imgSrcs: string[];
+  comicMode: ComicModeEnum;
 
   private data: ImageData;
   private globalEventRemoversArr = [];
@@ -20,6 +23,9 @@ export class ViewerComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.showOpenFileBtn = true;
+    const comicMode = remote.getGlobal('comicMode');
+    this.setComicMode(comicMode);
+
     ipcRenderer.on('imageOpened', (event, msg) => {
       if (msg === 'ok') {
         const data = remote.getGlobal('data');
@@ -28,6 +34,10 @@ export class ViewerComponent implements OnInit, OnDestroy {
         if (images.length > 0) {
           this.showOpenFileBtn = false;
           this.setImage(images[current]);
+          this.imgSrcs = [];
+          for (const img of images) {
+            this.imgSrcs.push(this.formatImage(img));
+          }
           this.ref.detectChanges();
         } else {
           console.error('no image opened');
@@ -48,12 +58,32 @@ export class ViewerComponent implements OnInit, OnDestroy {
     ipcRenderer.send('openImage');
   }
 
+  private setComicMode(comicMode: ComicModeEnum): void {
+    switch (comicMode) {
+      case ComicModeEnum.NORMAL:
+        document.querySelector('body').style.cssText = 'height: 100%; overflow-y: hidden;';
+        break;
+      case ComicModeEnum.FOLIO:
+        break;
+      case ComicModeEnum.VERTICAL:
+        document.querySelector('body').style.cssText = 'height: auto; overflow-y: scroll;';
+        break;
+      default:
+        return;
+    }
+    this.comicMode = comicMode;
+  }
+
+  private formatImage(imageUrl: string): string {
+    return `file://${imageUrl}`;
+  }
+
   private setImage(imageUrl: string): void {
-    this.imgSrc = `file://${imageUrl}`;
+    this.imgSrc = this.formatImage(imageUrl);
   }
 
   previous(): void {
-    if (!this.data) {
+    if (!this.data || this.comicMode === ComicModeEnum.VERTICAL) {
       return;
     }
     const { images } = this.data;
@@ -67,7 +97,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
   }
 
   next(): void {
-    if (!this.data) {
+    if (!this.data || this.comicMode === ComicModeEnum.VERTICAL) {
       return;
     }
     const { images } = this.data;
@@ -92,6 +122,14 @@ export class ViewerComponent implements OnInit, OnDestroy {
     } else {
       // 图片更宽
       img.style.transform = `scale(${offsetWidth / imgWidth})`;
+    }
+  }
+
+  changeMode(): void {
+    if (this.comicMode === ComicModeEnum.NORMAL) {
+      this.setComicMode(ComicModeEnum.VERTICAL);
+    } else if (this.comicMode === ComicModeEnum.VERTICAL) {
+      this.setComicMode(ComicModeEnum.NORMAL);
     }
   }
   resetSize(): void {}

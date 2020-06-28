@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import { URL } from 'url';
 import { showOpenFileDialog } from './dialog';
 import { getImageFiles } from './files';
+import { ComicModeEnum } from '../config/type';
 
 export class Application {
   readonly baseUrl: URL;
@@ -11,6 +12,7 @@ export class Application {
 
   constructor() {
     global.data = { current: 0, images: [] };
+    global.comicMode = ComicModeEnum.NORMAL;
     this.baseUrl = new URL(environment.indexHtmlUrl);
   }
 

@@ -83,6 +83,13 @@ button:disabled {
   user-select: none;
 }
 
+.vImg {
+  max-width: 80%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
 .btn-to {
   cursor: pointer;
   position: fixed;
