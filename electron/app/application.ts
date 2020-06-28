@@ -4,6 +4,8 @@ import { URL } from 'url';
 import { showOpenFileDialog } from './dialog';
 import { getImageFiles } from './files';
 import { ComicModeEnum } from '../config/type';
+import * as rimraf from 'rimraf';
+import { join } from 'path';
 
 export class Application {
   readonly baseUrl: URL;
@@ -58,6 +60,9 @@ export class Application {
 
   clear() {
     // 应用退出之前，清除application状态
+    const tempDir = app.getPath('temp');
+    const imageTempDir = join(tempDir, 'comic-viewer');
+    rimraf.sync(imageTempDir);
   }
 
   listen() {

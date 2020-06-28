@@ -1,25 +1,52 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as unzipper from 'unzipper';
 import { app } from 'electron';
 import * as rimraf from 'rimraf';
+import { spawn } from 'child_process';
+import * as prompt from 'electron-prompt';
 
 export function extractFiles(filepath: string): Promise<any> {
   const tempDir = app.getPath('temp');
   const imageTempDir = path.join(tempDir, 'comic-viewer');
-  const imageCacheTempDir = path.join(imageTempDir, '__MACOSX');
 
   rimraf.sync(imageTempDir);
   if (!fs.existsSync(imageTempDir)) {
     fs.mkdirSync(imageTempDir);
   }
-  if (!fs.existsSync(imageCacheTempDir)) {
-    fs.mkdirSync(imageCacheTempDir);
-  }
-  return fs
-    .createReadStream(filepath)
-    .pipe(unzipper.Extract({ path: imageTempDir }))
-    .promise()
-    .catch((e) => {})
-    .then(() => imageTempDir);
+
+  return new Promise((resolve, reject) => {
+    const unzip = spawn('unzip', [filepath, '-d', imageTempDir]);
+    unzip.stderr.on('data', (data) => {
+      if (data.indexOf('password') >= 0) {
+        prompt({
+          title: '请输入密码',
+          label: '密码：',
+          value: '',
+          inputAttrs: {
+            type: 'password',
+          },
+          type: 'input',
+        })
+          .then((password) => {
+            if (password === null) {
+              reject();
+            } else {
+              const pwdUnzip = spawn('unzip', ['-P', password, filepath, '-d', imageTempDir]);
+              pwdUnzip.stderr.on('data', () => {
+                reject();
+              });
+              pwdUnzip.on('close', (code) => {
+                code === 0 ? resolve(imageTempDir) : reject();
+              });
+            }
+          })
+          .catch(() => reject());
+      } else {
+        reject();
+      }
+    });
+    unzip.on('close', (code) => {
+      code === 0 ? resolve(imageTempDir) : reject();
+    });
+  });
 }

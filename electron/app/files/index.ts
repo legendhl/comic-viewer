@@ -38,7 +38,6 @@ function setGlobalData(imageData: ImageData) {
 }
 
 function getImageFilesFromDir(folderPath: string, filename?: string): Promise<any> {
-  console.log(folderPath, filename)
   const data: ImageData = {
     current: 0,
     images: [],
