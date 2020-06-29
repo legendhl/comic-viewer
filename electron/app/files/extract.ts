@@ -16,8 +16,10 @@ export function extractFiles(filepath: string): Promise<any> {
 
   return new Promise((resolve, reject) => {
     const unzip = spawn('unzip', [filepath, '-d', imageTempDir]);
+    let unzipErr = false;
     unzip.stderr.on('data', (data) => {
       if (data.indexOf('password') >= 0) {
+        unzipErr = true;
         prompt({
           title: '请输入密码',
           label: '密码：',
@@ -46,6 +48,9 @@ export function extractFiles(filepath: string): Promise<any> {
       }
     });
     unzip.on('close', (code) => {
+      if (unzipErr) {
+        return;
+      }
       code === 0 ? resolve(imageTempDir) : reject();
     });
   });
