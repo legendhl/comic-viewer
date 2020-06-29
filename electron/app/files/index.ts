@@ -79,3 +79,15 @@ export function getImageFiles(filepath: string): Promise<any> {
     }
   }
 }
+
+export function getNextFolder(filepath: string): string {
+  const folderPath = getFolderPath(filepath);
+  const folderName = path.basename(folderPath);
+  const parentFolder = getFolderPath(folderPath);
+
+  const files = fs.readdirSync(parentFolder);
+  const dirs = files.filter((file) => isDirectory(path.join(parentFolder, file)));
+  const length = dirs.length;
+  const index = (dirs.indexOf(folderName) + 1) % length;
+  return path.join(parentFolder, dirs[index]);
+}

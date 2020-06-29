@@ -44,6 +44,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
         }
       }
     });
+
     this.globalEventRemoversArr.push(
       this.eventManager.addGlobalEventListener('window', 'keydown', this.onKeyDown.bind(this)),
     );
@@ -100,11 +101,15 @@ export class ViewerComponent implements OnInit, OnDestroy {
     if (!this.data || this.comicMode === ComicModeEnum.VERTICAL) {
       return;
     }
-    const { images } = this.data;
+    const { images, current } = this.data;
     const length = images.length;
     if (length > 0) {
-      this.data.current = (this.data.current + 1) % length;
-      this.setImage(images[this.data.current]);
+      if (current + 1 < length) {
+        this.data.current = (current + 1) % length;
+        this.setImage(images[this.data.current]);
+      } else {
+        ipcRenderer.send('switchFolder');
+      }
     } else {
       console.error('no image opened');
     }
