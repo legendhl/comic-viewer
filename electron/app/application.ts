@@ -80,36 +80,31 @@ export class Application {
   private initMenu() {
     const template: any = [
       {
-        label: '看看',
+        label: 'comic viewer',
+        submenu: [{ label: '退出', role: 'quit' }, { type: 'separator' }, { label: '关于', role: 'about' }],
+      },
+      {
+        label: '文件',
         submenu: [
           {
-            label: '退出', // 'exit',
-            accelerator: 'Esc',
+            label: '打开',
+            accelerator: 'CmdOrCtrl+N',
             click: () => {
-              app.quit();
-            },
-          },
-          { type: 'separator' },
-          {
-            label: '关于', // 'about',
-            click: () => {
-              app.showAboutPanel();
+              this.openFileAndSend();
             },
           },
         ],
       },
       {
-        label: '文件', // 'file',
+        label: '窗口',
         submenu: [
+          { label: '最小化', role: 'minimize' },
+          { label: '缩放', role: 'zoom' },
           {
-            label: '打开', // 'open',
-            accelerator: 'CmdOrCtrl+N',
+            label: '关闭',
+            accelerator: 'CmdOrCtrl+W',
             click: () => {
-              // showOpenFileDialog().then((success) => {
-              //   if (success) {
-              //     createWindow();
-              //   }
-              // });
+              this.instance.hide();
             },
           },
         ],
@@ -118,6 +113,16 @@ export class Application {
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
+  }
+
+  private openFileAndSend() {
+    showOpenFileDialog().then((filepath) => {
+      if (filepath) {
+        getImageFiles(filepath).then((_) => this.instance.webContents.send('imageOpened', 'ok'));
+      } else {
+        this.instance.webContents.send('imageOpened', 'failed');
+      }
+    });
   }
 
   private openFileAndReply(event) {
