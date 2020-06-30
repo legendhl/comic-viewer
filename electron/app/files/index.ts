@@ -6,6 +6,11 @@ import { extractFiles } from './extract';
 export const supportImageFileTypes = ['jpg', 'jpeg', 'png', 'apng', 'gif', 'ico', 'bmp', 'webp'];
 export const supportZipFileTypes = ['zip', 'rar', 'gz', '7z'];
 
+export enum folderSwitchDirEnum {
+  PREVIOUS = -1,
+  NEXT = 1,
+}
+
 function getFolderPath(filepath = '') {
   return path.dirname(filepath);
 }
@@ -80,7 +85,7 @@ export function getImageFiles(filepath: string): Promise<any> {
   }
 }
 
-export function getNextFolder(filepath: string): string {
+export function getNextFolder(filepath: string, switchDir: folderSwitchDirEnum): string {
   const folderPath = getFolderPath(filepath);
   const folderName = path.basename(folderPath);
   const parentFolder = getFolderPath(folderPath);
@@ -88,6 +93,6 @@ export function getNextFolder(filepath: string): string {
   const files = fs.readdirSync(parentFolder);
   const dirs = files.filter((file) => isDirectory(path.join(parentFolder, file)));
   const length = dirs.length;
-  const index = (dirs.indexOf(folderName) + 1) % length;
+  const index = (dirs.indexOf(folderName) + switchDir + length) % length;
   return path.join(parentFolder, dirs[index]);
 }

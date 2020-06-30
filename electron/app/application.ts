@@ -2,7 +2,7 @@ import { environment } from '../environments/environment';
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import { URL } from 'url';
 import { showOpenFileDialog } from './dialog';
-import { getImageFiles, getNextFolder } from './files';
+import { getImageFiles, getNextFolder, folderSwitchDirEnum } from './files';
 import { ComicModeEnum } from '../config/type';
 import * as rimraf from 'rimraf';
 import { join } from 'path';
@@ -67,7 +67,8 @@ export class Application {
 
   listen() {
     ipcMain.on('openImage', this.openFileAndReply);
-    ipcMain.on('switchFolder', this.switchFolder);
+    ipcMain.on('switchNextFolder', (event) => this.switchNextFolder(event));
+    ipcMain.on('switchPreviousFolder', (event) => this.switchPreviousFolder(event));
   }
 
   showWindow() {
@@ -136,12 +137,20 @@ export class Application {
     });
   }
 
-  private switchFolder(event) {
-    const folderPath = getNextFolder(global.data.images[0]);
+  private switchFolder(event, switchDir: folderSwitchDirEnum) {
+    const folderPath = getNextFolder(global.data.images[0], switchDir);
     if (folderPath) {
       getImageFiles(folderPath).then((_) => event.reply('imageOpened', 'ok'));
     } else {
       event.reply('imageOpened', 'failed');
     }
+  }
+
+  private switchPreviousFolder(event) {
+    this.switchFolder(event, folderSwitchDirEnum.PREVIOUS);
+  }
+
+  private switchNextFolder(event) {
+    this.switchFolder(event, folderSwitchDirEnum.NEXT);
   }
 }

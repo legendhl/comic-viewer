@@ -84,7 +84,11 @@ export class ViewerComponent implements OnInit, OnDestroy {
   }
 
   previous(): void {
-    if (!this.data || this.comicMode === ComicModeEnum.VERTICAL) {
+    if (!this.data) {
+      return;
+    }
+    if (this.comicMode === ComicModeEnum.VERTICAL) {
+      ipcRenderer.send('switchPreviousFolder');
       return;
     }
     const { images } = this.data;
@@ -98,7 +102,11 @@ export class ViewerComponent implements OnInit, OnDestroy {
   }
 
   next(): void {
-    if (!this.data || this.comicMode === ComicModeEnum.VERTICAL) {
+    if (!this.data) {
+      return;
+    }
+    if (this.comicMode === ComicModeEnum.VERTICAL) {
+      ipcRenderer.send('switchNextFolder');
       return;
     }
     const { images, current } = this.data;
@@ -108,7 +116,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
         this.data.current = (current + 1) % length;
         this.setImage(images[this.data.current]);
       } else {
-        ipcRenderer.send('switchFolder');
+        ipcRenderer.send('switchNextFolder');
       }
     } else {
       console.error('no image opened');
