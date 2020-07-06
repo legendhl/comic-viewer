@@ -148,11 +148,14 @@ export class ViewerComponent implements OnInit, OnDestroy {
   }
 
   changeMode(): void {
+    let newMode;
     if (this.comicMode === ComicModeEnum.NORMAL) {
-      this.setComicMode(ComicModeEnum.VERTICAL);
+      newMode = ComicModeEnum.VERTICAL;
     } else if (this.comicMode === ComicModeEnum.VERTICAL) {
-      this.setComicMode(ComicModeEnum.NORMAL);
+      newMode = ComicModeEnum.NORMAL;
     }
+    this.setComicMode(newMode);
+    localStorage.setItem('comic-mode', newMode);
   }
 
   resetSize(): void {}

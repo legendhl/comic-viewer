@@ -6,6 +6,7 @@ import { getImageFiles, getNextFolder, folderSwitchDirEnum } from './files';
 import { ComicModeEnum } from '../config/type';
 import * as rimraf from 'rimraf';
 import { join } from 'path';
+const { localStorage } = require('electron-browser-storage');
 
 export class Application {
   readonly baseUrl: URL;
@@ -14,7 +15,9 @@ export class Application {
 
   constructor() {
     global.data = { current: 0, images: [] };
-    global.comicMode = ComicModeEnum.NORMAL;
+    localStorage.getItem('comic-mode').then((mode) => {
+      global.comicMode = mode || ComicModeEnum.NORMAL;
+    });
     this.baseUrl = new URL(environment.indexHtmlUrl);
   }
 
