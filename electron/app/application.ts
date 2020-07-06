@@ -94,7 +94,7 @@ export class Application {
         submenu: [
           {
             label: '打开',
-            accelerator: 'CmdOrCtrl+N',
+            accelerator: 'CmdOrCtrl+O',
             click: () => {
               this.openFileAndSend();
             },
