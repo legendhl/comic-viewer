@@ -3,6 +3,7 @@ import { ipcRenderer, remote } from 'electron';
 import { EventManager } from '@angular/platform-browser';
 import { ImageData } from '../../../electron/data/data.interface';
 import { ComicModeEnum } from '../../../electron/config/type';
+import * as path from 'path';
 
 @Component({
   selector: 'app-viewer',
@@ -15,6 +16,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
   imgSrc: string;
   imgSrcs: string[];
   comicMode: ComicModeEnum;
+  title: string;
 
   private data: ImageData;
   private globalEventRemoversArr = [];
@@ -81,6 +83,13 @@ export class ViewerComponent implements OnInit, OnDestroy {
 
   private setImage(imageUrl: string): void {
     this.imgSrc = this.formatImage(imageUrl);
+    let title;
+    if (this.comicMode === ComicModeEnum.NORMAL) {
+      title = path.basename(imageUrl);
+    } else if (this.comicMode === ComicModeEnum.VERTICAL) {
+      title = path.basename(path.dirname(imageUrl));
+    }
+    this.title = title;
   }
 
   previous(): void {
@@ -145,11 +154,9 @@ export class ViewerComponent implements OnInit, OnDestroy {
       this.setComicMode(ComicModeEnum.NORMAL);
     }
   }
+
   resetSize(): void {}
   realSize(): void {}
-  initParams(): void {}
-  setWallpaper(): void {}
-  changeTheme(): void {}
   doSomething(): void {}
 
   onKeyDown($event: KeyboardEvent): void {

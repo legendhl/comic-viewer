@@ -20,22 +20,17 @@
     <div class="btn-txt">←</div>
   </div>
   <div class="title-bar" id="title-bar">
-    <!-- ondblclick="maxWindow()" -->
-    <div id="title" class="title" (dblclick)="maxWindow()"></div>
+    <div id="title" class="title" (dblclick)="maxWindow()">{{title}}</div>
     <div style="float: left;">
       <button (click)="previous()">◀</button>
       <button (click)="next()">▶</button>
     </div>
     <div style="display: block; float: right; padding-right: 90px;">
+      <!-- <label id="zoom-per">100%</label> -->
       <!-- <button (click)="realSize()">↗</button>
-      <button (click)="initParams()">↙</button>
-      <button (click)="setWallpaper()" id="btn-wallpaper">♡</button> -->
-      <!-- <button (click)="showMenu()">菜单</button> -->
-      <!-- <button (click)="changeTheme()" id="btn-theme">◐</button> -->
+      <button (click)="zoomIn()">+</button>
+      <button (click)="zoomOut()">-</button> -->
       <button (click)="changeMode()" id="btn-mode">{{comicMode}}</button>
     </div>
   </div>
-  <!-- <div class="foot-bar" id="foot-bar">
-    <label id="zoom-per">100%</label>
-  </div> -->
 </div>
