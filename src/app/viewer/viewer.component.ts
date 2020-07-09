@@ -3,7 +3,7 @@ import { ipcRenderer, remote } from 'electron';
 import { EventManager } from '@angular/platform-browser';
 import { ImageData } from '../../../electron/data/data.interface';
 import { ComicModeEnum } from '../../../electron/config/type';
-import * as path from 'path';
+import { getTitle } from '../../../electron/app/utils/titleUtil';
 
 @Component({
   selector: 'app-viewer',
@@ -83,13 +83,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
 
   private setImage(imageUrl: string): void {
     this.imgSrc = this.formatImage(imageUrl);
-    let title;
-    if (this.comicMode === ComicModeEnum.NORMAL) {
-      title = path.basename(imageUrl);
-    } else if (this.comicMode === ComicModeEnum.VERTICAL) {
-      title = path.basename(path.dirname(imageUrl));
-    }
-    this.title = title;
+    this.title = getTitle(imageUrl, this.comicMode);
   }
 
   previous(): void {

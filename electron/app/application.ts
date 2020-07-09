@@ -5,8 +5,9 @@ import { showOpenFileDialog } from './dialog';
 import { getImageFiles, getNextFolder, folderSwitchDirEnum } from './files';
 import { ComicModeEnum } from '../config/type';
 import * as rimraf from 'rimraf';
-import { join } from 'path';
+import { join, basename } from 'path';
 const { localStorage } = require('electron-browser-storage');
+import { getTitle } from './utils/titleUtil';
 
 export class Application {
   readonly baseUrl: URL;
@@ -70,7 +71,7 @@ export class Application {
   }
 
   listen() {
-    ipcMain.on('openImage', this.openFileAndReply);
+    ipcMain.on('openImage', (event) => this.openFileAndReply(event));
     ipcMain.on('switchNextFolder', (event) => this.switchNextFolder(event));
     ipcMain.on('switchPreviousFolder', (event) => this.switchPreviousFolder(event));
   }
@@ -84,41 +85,67 @@ export class Application {
   }
 
   private initMenu() {
-    const template: any = [
-      {
-        label: 'comic viewer',
-        submenu: [{ label: '退出', role: 'quit' }, { type: 'separator' }, { label: '关于', role: 'about' }],
-      },
-      {
-        label: '文件',
-        submenu: [
-          {
-            label: '打开',
-            accelerator: 'CmdOrCtrl+O',
-            click: () => {
-              this.openFileAndSend();
-            },
+    (async () => {
+      let histories = await localStorage.getItem('history');
+      histories = JSON.parse(histories || '[]');
+      const historiesMenu = histories.map((history) => {
+        return {
+          label: history.filename,
+          click: () => {
+            this.openFileByPathAndSend(history.filepath);
           },
-        ],
-      },
-      {
-        label: '窗口',
-        submenu: [
-          { label: '最小化', role: 'minimize' },
-          { label: '缩放', role: 'zoom' },
-          {
-            label: '关闭',
-            accelerator: 'CmdOrCtrl+W',
-            click: () => {
-              this.instance.hide();
-            },
-          },
-        ],
-      },
-    ];
+        };
+      });
 
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
+      const template: any = [
+        // process.platform === 'darwin'
+        {
+          label: app.getName(),
+          submenu: [{ label: '退出', role: 'quit' }, { type: 'separator' }, { label: '关于', role: 'about' }],
+        },
+        {
+          label: '文件',
+          submenu: [
+            {
+              label: '打开...',
+              accelerator: 'CmdOrCtrl+O',
+              click: () => {
+                this.openFileAndSend();
+              },
+            },
+            {
+              label: '打开最近的文件',
+              submenu: historiesMenu,
+            },
+          ],
+        },
+        {
+          label: '窗口',
+          submenu: [
+            { label: '最小化', role: 'minimize' },
+            { label: '缩放', role: 'zoom' },
+            {
+              label: '关闭',
+              accelerator: 'CmdOrCtrl+W',
+              click: () => {
+                this.instance.hide();
+              },
+            },
+          ],
+        },
+      ];
+
+      const menu = Menu.buildFromTemplate(template);
+      Menu.setApplicationMenu(menu);
+    })();
+  }
+
+  private openFileByPathAndSend(filepath) {
+    if (filepath) {
+      getImageFiles(filepath).then((_) => this.instance.webContents.send('imageOpened', 'ok'));
+    } else {
+      this.instance.webContents.send('imageOpened', 'failed');
+    }
   }
 
   private openFileAndSend() {
@@ -134,6 +161,7 @@ export class Application {
   private openFileAndReply(event) {
     showOpenFileDialog().then((filepath) => {
       if (filepath) {
+        this.storeHistory(filepath);
         getImageFiles(filepath).then((_) => event.reply('imageOpened', 'ok'));
       } else {
         event.reply('imageOpened', 'failed');
@@ -144,6 +172,9 @@ export class Application {
   private switchFolder(event, switchDir: folderSwitchDirEnum) {
     const folderPath = getNextFolder(global.data.images[0], switchDir);
     if (folderPath) {
+      if (global.comicMode === ComicModeEnum.VERTICAL) {
+        this.replaceHistory(folderPath);
+      }
       getImageFiles(folderPath).then((_) => event.reply('imageOpened', 'ok'));
     } else {
       event.reply('imageOpened', 'failed');
@@ -156,5 +187,26 @@ export class Application {
 
   private switchNextFolder(event) {
     this.switchFolder(event, folderSwitchDirEnum.NEXT);
+  }
+
+  private storeHistory(filepath) {
+    const filename = getTitle(filepath, global.comicMode);
+    localStorage.getItem('history').then((historiesStr) => {
+      let histories = JSON.parse(historiesStr || '[]');
+      histories.unshift({ filename, filepath });
+      histories = histories.slice(0, 10);
+      localStorage.setItem('history', JSON.stringify(histories));
+    });
+  }
+
+  private replaceHistory(filepath) {
+    const filename = basename(filepath);
+    localStorage.getItem('history').then((historiesStr) => {
+      let histories = JSON.parse(historiesStr || '[]');
+      histories.shift();
+      histories.unshift({ filename, filepath });
+      histories = histories.slice(0, 10);
+      localStorage.setItem('history', JSON.stringify(histories));
+    });
   }
 }
