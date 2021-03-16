@@ -27,7 +27,7 @@ try {
     appStart = false;
   });
 
-  // 应用退出之前，清除application状态，目前仅包含24小时检查更新的interval
+  // 应用退出之前，清除application状态
   app.on('before-quit', () => {
     application.clear();
   });

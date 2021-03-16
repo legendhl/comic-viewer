@@ -1,13 +1,14 @@
-import { environment } from '../environments/environment';
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import { URL } from 'url';
+import * as rimraf from 'rimraf';
+import { join, basename } from 'path';
+import { localStorage } from 'electron-browser-storage';
+
+import { environment } from '../environments/environment';
+import { getTitle } from './utils/titleUtil';
 import { showOpenFileDialog } from './dialog';
 import { getImageFiles, getNextFolder, folderSwitchDirEnum } from './files';
 import { ComicModeEnum } from '../config/type';
-import * as rimraf from 'rimraf';
-import { join, basename } from 'path';
-const { localStorage } = require('electron-browser-storage');
-import { getTitle } from './utils/titleUtil';
 
 export class Application {
   readonly baseUrl: URL;
@@ -16,7 +17,7 @@ export class Application {
 
   constructor() {
     global.data = { current: 0, images: [] };
-    localStorage.getItem('comic-mode').then((mode) => {
+    localStorage.getItem('comic-mode').then(mode => {
       global.comicMode = mode || ComicModeEnum.NORMAL;
     });
     this.baseUrl = new URL(environment.indexHtmlUrl);
@@ -32,28 +33,39 @@ export class Application {
   }
 
   createWindow() {
-    const instance = new BrowserWindow({
-      width: 800,
-      height: 600,
-      titleBarStyle: 'hiddenInset',
-      webPreferences: {
-        webSecurity: false,
-        nodeIntegration: true,
-      },
-    });
+    (async () => {
+      let size = await localStorage.getItem('window-size');
+      size = JSON.parse(size || '{}');
+      const { width = 800, height = 600 } = size;
 
-    instance.loadURL(this.baseUrl.toString());
+      const instance = new BrowserWindow({
+        width,
+        height,
+        titleBarStyle: 'hiddenInset',
+        webPreferences: {
+          webSecurity: false,
+          nodeIntegration: true,
+        },
+      });
 
-    instance.on('closed', () => {
-      this.instance = null;
-    });
-    instance.on('close', () => {
-      app.quit();
-    });
+      instance.loadURL(this.baseUrl.toString());
 
-    this.instance = instance;
+      instance.on('close', () => {
+        app.quit();
+      });
+      instance.on('closed', () => {
+        this.instance = null;
+      });
+      instance.on('resize', () => {
+        const size = instance.getSize();
+        const [width, height] = size;
+        localStorage.setItem('window-size', JSON.stringify({ width, height }));
+      });
 
-    this.listen();
+      this.instance = instance;
+
+      this.listen();
+    })();
   }
 
   activate() {
@@ -71,9 +83,9 @@ export class Application {
   }
 
   listen() {
-    ipcMain.on('openImage', (event) => this.openFileAndReply(event));
-    ipcMain.on('switchNextFolder', (event) => this.switchNextFolder(event));
-    ipcMain.on('switchPreviousFolder', (event) => this.switchPreviousFolder(event));
+    ipcMain.on('openImage', event => this.openFileAndReply(event));
+    ipcMain.on('switchNextFolder', event => this.switchNextFolder(event));
+    ipcMain.on('switchPreviousFolder', event => this.switchPreviousFolder(event));
   }
 
   showWindow() {
@@ -88,7 +100,7 @@ export class Application {
     (async () => {
       let histories = await localStorage.getItem('history');
       histories = JSON.parse(histories || '[]');
-      const historiesMenu = histories.map((history) => {
+      const historiesMenu = histories.map(history => {
         return {
           label: history.filename,
           click: () => {
@@ -101,7 +113,7 @@ export class Application {
         // process.platform === 'darwin'
         {
           label: app.getName(),
-          submenu: [{ label: '退出', role: 'quit' }, { type: 'separator' }, { label: '关于', role: 'about' }],
+          submenu: [{ label: '关于', role: 'about' }, { type: 'separator' }, { label: '退出', role: 'quit' }],
         },
         {
           label: '文件',
@@ -142,16 +154,16 @@ export class Application {
 
   private openFileByPathAndSend(filepath) {
     if (filepath) {
-      getImageFiles(filepath).then((_) => this.instance.webContents.send('imageOpened', 'ok'));
+      getImageFiles(filepath).then(_ => this.instance.webContents.send('imageOpened', 'ok'));
     } else {
       this.instance.webContents.send('imageOpened', 'failed');
     }
   }
 
   private openFileAndSend() {
-    showOpenFileDialog().then((filepath) => {
+    showOpenFileDialog().then(filepath => {
       if (filepath) {
-        getImageFiles(filepath).then((_) => this.instance.webContents.send('imageOpened', 'ok'));
+        getImageFiles(filepath).then(_ => this.instance.webContents.send('imageOpened', 'ok'));
       } else {
         this.instance.webContents.send('imageOpened', 'failed');
       }
@@ -159,10 +171,10 @@ export class Application {
   }
 
   private openFileAndReply(event) {
-    showOpenFileDialog().then((filepath) => {
+    showOpenFileDialog().then(filepath => {
       if (filepath) {
         this.storeHistory(filepath);
-        getImageFiles(filepath).then((_) => event.reply('imageOpened', 'ok'));
+        getImageFiles(filepath).then(_ => event.reply('imageOpened', 'ok'));
       } else {
         event.reply('imageOpened', 'failed');
       }
@@ -175,7 +187,7 @@ export class Application {
       if (global.comicMode === ComicModeEnum.VERTICAL) {
         this.replaceHistory(folderPath);
       }
-      getImageFiles(folderPath).then((_) => event.reply('imageOpened', 'ok'));
+      getImageFiles(folderPath).then(_ => event.reply('imageOpened', 'ok'));
     } else {
       event.reply('imageOpened', 'failed');
     }
@@ -191,7 +203,7 @@ export class Application {
 
   private storeHistory(filepath) {
     const filename = getTitle(filepath, global.comicMode);
-    localStorage.getItem('history').then((historiesStr) => {
+    localStorage.getItem('history').then(historiesStr => {
       let histories = JSON.parse(historiesStr || '[]');
       histories.unshift({ filename, filepath });
       histories = histories.slice(0, 10);
@@ -201,7 +213,7 @@ export class Application {
 
   private replaceHistory(filepath) {
     const filename = basename(filepath);
-    localStorage.getItem('history').then((historiesStr) => {
+    localStorage.getItem('history').then(historiesStr => {
       let histories = JSON.parse(historiesStr || '[]');
       histories.shift();
       histories.unshift({ filename, filepath });
