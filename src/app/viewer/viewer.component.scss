@@ -24,6 +24,11 @@ a {
   user-select: none;
 }
 
+.scale {
+  font-size: 12px;
+  margin: 0 12px;
+}
+
 button {
   height: $title-bar-height - $tool-padding;
   line-height: $title-bar-height - $tool-padding * 2;

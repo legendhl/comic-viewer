@@ -5,7 +5,12 @@
     </ng-container>
     <ng-container *ngIf="comicMode === '竖版'">
       <div class="imgContainer">
-        <img class="vImg" *ngFor="let imgSrc of imgSrcs" [src]="imgSrc" (dblclick)="resetSize()" />
+        <ng-template ngFor let-imgSrc [ngForOf]="imgSrcs" let-i="index">
+          <ng-container *ngIf="i === 0; else other">
+            <img #firstImg class="vImg" [src]="imgSrc" (dblclick)="resetSize()" (load)="onImageLoad()" />
+          </ng-container>
+          <ng-template #other><img class="vImg" [src]="imgSrc" (dblclick)="resetSize()"/></ng-template>
+        </ng-template>
       </div>
     </ng-container>
   </div>
@@ -20,7 +25,7 @@
     <div class="btn-txt">←</div>
   </div>
   <div class="title-bar" id="title-bar">
-    <div id="title" class="title" (dblclick)="maxWindow()">{{title}}</div>
+    <div id="title" class="title" (dblclick)="maxWindow()">{{ title }}</div>
     <div style="float: left;">
       <button (click)="previous()">◀</button>
       <button (click)="next()">▶</button>
@@ -30,7 +35,8 @@
       <!-- <button (click)="realSize()">↗</button>
       <button (click)="zoomIn()">+</button>
       <button (click)="zoomOut()">-</button> -->
-      <button (click)="changeMode()" id="btn-mode">{{comicMode}}</button>
+      <span *ngIf="scale" class="scale">{{ scale | percent }}</span>
+      <button (click)="changeMode()" id="btn-mode">{{ comicMode }}</button>
     </div>
   </div>
 </div>

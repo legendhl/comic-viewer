@@ -12,11 +12,13 @@ import { getTitle } from '../../../electron/app/utils/titleUtil';
 })
 export class ViewerComponent implements OnInit, OnDestroy {
   @ViewChild('img') imgElement: ElementRef<HTMLImageElement>;
+  @ViewChild('firstImg') firstImgElement: ElementRef<HTMLImageElement>;
   showOpenFileBtn: boolean;
   imgSrc: string;
   imgSrcs: string[];
   comicMode: ComicModeEnum;
   title: string;
+  scale: number;
 
   private data: ImageData;
   private globalEventRemoversArr = [];
@@ -53,7 +55,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.globalEventRemoversArr.forEach((remover) => remover());
+    this.globalEventRemoversArr.forEach(remover => remover());
     this.globalEventRemoversArr = [];
   }
 
@@ -133,12 +135,20 @@ export class ViewerComponent implements OnInit, OnDestroy {
     const img = this.imgElement.nativeElement;
     const { offsetWidth: imgWidth, offsetHeight: imgHeight } = img;
     if (offsetWidth * imgHeight > imgWidth * offsetHeight) {
+      this.scale = offsetHeight / imgHeight;
       // 窗口更宽
-      img.style.transform = `scale(${offsetHeight / imgHeight})`;
+      img.style.transform = `scale(${this.scale})`;
     } else {
+      this.scale = offsetWidth / imgWidth;
       // 图片更宽
-      img.style.transform = `scale(${offsetWidth / imgWidth})`;
+      img.style.transform = `scale(${this.scale})`;
     }
+  }
+
+  onImageLoad(): void {
+    const img = this.firstImgElement.nativeElement;
+    const { naturalWidth, clientWidth } = img;
+    this.scale = clientWidth / naturalWidth;
   }
 
   changeMode(): void {
