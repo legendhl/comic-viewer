@@ -1,4 +1,19 @@
 <div class="container">
+  <div class="title-bar" id="title-bar">
+    <div id="title" class="title" (dblclick)="maxWindow()">{{ title }}</div>
+    <div style="float: left;">
+      <button (click)="previous()">◀</button>
+      <button (click)="next()">▶</button>
+    </div>
+    <div class="oper-button">
+      <!-- <label id="zoom-per">100%</label> -->
+      <!-- <button (click)="realSize()">↗</button>
+      <button (click)="zoomIn()">+</button>
+      <button (click)="zoomOut()">-</button> -->
+      <span *ngIf="scale" class="scale">{{ scale | percent }}</span>
+      <button (click)="changeMode()" id="btn-mode">{{ comicMode }}</button>
+    </div>
+  </div>
   <div class="main" id="div" (mousewheel)="doSomething()">
     <ng-container *ngIf="comicMode === '单开页'">
       <img class="img" #img [src]="imgSrc" (dblclick)="resetSize()" (load)="resize()" />
@@ -23,20 +38,5 @@
   </div>
   <div style="left: 0;" class="btn-to" (click)="previous()" id="btn-to-l">
     <div class="btn-txt">←</div>
-  </div>
-  <div class="title-bar" id="title-bar">
-    <div id="title" class="title" (dblclick)="maxWindow()">{{ title }}</div>
-    <div style="float: left;">
-      <button (click)="previous()">◀</button>
-      <button (click)="next()">▶</button>
-    </div>
-    <div style="display: block; float: right; padding-right: 90px;">
-      <!-- <label id="zoom-per">100%</label> -->
-      <!-- <button (click)="realSize()">↗</button>
-      <button (click)="zoomIn()">+</button>
-      <button (click)="zoomOut()">-</button> -->
-      <span *ngIf="scale" class="scale">{{ scale | percent }}</span>
-      <button (click)="changeMode()" id="btn-mode">{{ comicMode }}</button>
-    </div>
   </div>
 </div>

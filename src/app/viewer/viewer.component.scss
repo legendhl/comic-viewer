@@ -9,18 +9,15 @@ a {
 }
 
 .title-bar {
-  width: 100%;
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
   text-align: center;
   background-color: $title-bg-color;
   height: $title-bar-height;
   -webkit-app-region: drag;
   overflow-x: hidden;
   border-bottom: $title-border;
-  padding-top: $tool-padding;
-  padding-left: 80px;
+  padding: $tool-padding 10px 0;
   user-select: none;
 }
 
@@ -55,11 +52,11 @@ button:disabled {
 }
 
 .title {
-  display: none;
   position: fixed;
-  left: 150px;
-  right: 170px;
+  left: 0;
+  right: 0;
   top: 0;
+  margin: 0 auto;
   height: $title-bar-height + $tool-padding;
   line-height: $title-bar-height + $tool-padding;
   user-select: none;
@@ -67,6 +64,11 @@ button:disabled {
   overflow-x: hidden;
   color: $title-color;
   display: inline-block;
+}
+
+.oper-button {
+  display: block;
+  float: right;
 }
 
 .main {

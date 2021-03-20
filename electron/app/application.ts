@@ -41,7 +41,7 @@ export class Application {
       const instance = new BrowserWindow({
         width,
         height,
-        titleBarStyle: 'hiddenInset',
+        titleBarStyle: 'default',
         webPreferences: {
           webSecurity: false,
           nodeIntegration: true,
