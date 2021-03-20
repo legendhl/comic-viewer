@@ -53,7 +53,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
               for (const img of images) {
                 this.imgSrcs.push(this.formatImage(img));
               }
-              // TODO: title
+              this.title = getTitle(this.imgSrcs[0], this.comicMode);
             }
           }
           this.ref.detectChanges();
