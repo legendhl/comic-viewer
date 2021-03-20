@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, MenuItem } from 'electron';
 import { URL } from 'url';
 import * as rimraf from 'rimraf';
 import { join, basename } from 'path';
@@ -17,6 +17,7 @@ export class Application {
   readonly baseUrl: URL;
 
   instance: BrowserWindow;
+  menu: Menu;
 
   constructor() {
     global.data = { current: 0, images: [] };
@@ -113,7 +114,7 @@ export class Application {
         };
       });
 
-      const template: any = [
+      const template: Array<Electron.MenuItemConstructorOptions | Electron.MenuItem> = [
         // process.platform === 'darwin'
         {
           label: app.getName(),
@@ -130,6 +131,7 @@ export class Application {
               },
             },
             {
+              id: 'historyMenu',
               label: '打开最近的文件',
               submenu: historiesMenu,
             },
@@ -151,8 +153,8 @@ export class Application {
         },
       ];
 
-      const menu = Menu.buildFromTemplate(template);
-      Menu.setApplicationMenu(menu);
+      this.menu = Menu.buildFromTemplate(template);
+      Menu.setApplicationMenu(this.menu);
     })();
   }
 
@@ -244,9 +246,21 @@ export class Application {
     localStorage.getItem('history').then(historiesStr => {
       let histories: History[] = JSON.parse(historiesStr || '[]');
       const oldHistory = histories.shift();
-      histories.unshift({ ...oldHistory, volumnIndex: newVolumnIndex });
+      const newHistory = { ...oldHistory, volumnIndex: newVolumnIndex };
+      histories.unshift(newHistory);
       histories = histories.slice(0, 10);
       localStorage.setItem('history', JSON.stringify(histories));
+      // const menu = this.menu.getMenuItemById('historyMenu');
+      // menu.submenu.insert(
+      //   0,
+      //   new MenuItem({
+      //     label: newHistory.menuName,
+      //     click: () => {
+      //       this.openFileByHistory(newHistory);
+      //     },
+      //   }),
+      // );
+      // Menu.setApplicationMenu(this.menu);
     });
   }
 
