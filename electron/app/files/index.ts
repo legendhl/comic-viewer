@@ -1,46 +1,18 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ImageData } from '../../data/data.interface';
-import { extractFiles } from './extract';
 import * as StreamZip from 'node-stream-zip';
 
-export const supportImageFileTypes = ['jpg', 'jpeg', 'png', 'apng', 'gif', 'ico', 'bmp', 'webp'];
-export const supportZipFileTypes = ['zip', 'rar', 'gz', '7z'];
-
-export enum folderSwitchDirEnum {
-  PREVIOUS = -1,
-  NEXT = 1,
-}
-
-function getFolderPath(filepath = '') {
-  return path.dirname(filepath);
-}
-
-function getFileName(filepath = '') {
-  return path.basename(filepath);
-}
-
-function getFileType(filepath = '') {
-  return path
-    .extname(filepath)
-    .toLowerCase()
-    .replace('.', '');
-}
-
-function isImage(file) {
-  const fileType = getFileType(file);
-  return supportImageFileTypes.indexOf(fileType) >= 0;
-}
-
-function isZipFile(file) {
-  const fileType = getFileType(file);
-  return supportZipFileTypes.indexOf(fileType) >= 0;
-}
-
-function isDirectory(filepath) {
-  const stat = fs.lstatSync(filepath);
-  return stat.isDirectory();
-}
+import { ImageData } from '../../data/data.interface';
+import { extractFiles } from './extract';
+import {
+  folderSwitchDirEnum,
+  getFolderPath,
+  getFileName,
+  getFileType,
+  isImage,
+  isZipFile,
+  isDirectory,
+} from './filepath';
 
 function setGlobalData(imageData: ImageData) {
   global.data = imageData;
@@ -74,6 +46,9 @@ export async function getImageFilesFromZip(filepath: string, volumnIndex: number
   const directories = [];
   const files = [];
   for (const entry of Object.values(entries)) {
+    if (entry.name.startsWith('__MACOSX')) {
+      continue;
+    }
     if (entry.isDirectory) {
       directories.push(entry);
     } else if (entry.isFile) {
@@ -99,12 +74,13 @@ export async function getImageFilesFromZip(filepath: string, volumnIndex: number
     folderName: curDir.name,
     volumnIndex,
     filepath,
-    isZip: true
+    isZip: true,
   };
   setGlobalData(data);
   return Promise.resolve();
 }
 
+// TODO: return Promise<openFileInfo>
 export function getImageFiles(filepath: string): Promise<any> {
   if (isDirectory(filepath)) {
     return getImageFilesFromDir(filepath);

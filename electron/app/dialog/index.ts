@@ -1,5 +1,5 @@
 import { dialog } from 'electron';
-import { supportImageFileTypes, supportZipFileTypes } from '../files';
+import { supportImageFileTypes, supportZipFileTypes } from '../files/filepath';
 
 export function showOpenFileDialog() {
   const supportFileTypes = [].concat(supportImageFileTypes, supportZipFileTypes);
@@ -10,13 +10,13 @@ export function showOpenFileDialog() {
       properties: ['openFile', 'openDirectory'],
       filters: [{ name: 'Images', extensions: supportFileTypes }],
     })
-    .then((result) => {
+    .then(result => {
       if (result.filePaths.length > 0) {
         return result.filePaths[0];
       }
       return null;
     })
-    .catch((e) => {
+    .catch(e => {
       console.error(e);
       return null;
     });
