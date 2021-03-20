@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { ipcRenderer, remote } from 'electron';
-import { EventManager } from '@angular/platform-browser';
+import { EventManager, DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ImageData } from '../../../electron/data/data.interface';
 import { ComicModeEnum } from '../../../electron/config/type';
 import { getTitle } from '../../../electron/app/utils/titleUtil';
@@ -15,7 +15,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
   @ViewChild('firstImg') firstImgElement: ElementRef<HTMLImageElement>;
   showOpenFileBtn: boolean;
   imgSrc: string;
-  imgSrcs: string[];
+  imgSrcs: (string | SafeResourceUrl)[];
   comicMode: ComicModeEnum;
   title: string;
   scale: number;
@@ -23,7 +23,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
   private data: ImageData;
   private globalEventRemoversArr = [];
 
-  constructor(private ref: ChangeDetectorRef, private eventManager: EventManager) {}
+  constructor(private ref: ChangeDetectorRef, private eventManager: EventManager, private dom: DomSanitizer) {}
 
   ngOnInit(): void {
     this.showOpenFileBtn = true;
@@ -34,13 +34,27 @@ export class ViewerComponent implements OnInit, OnDestroy {
       if (msg === 'ok') {
         const data = remote.getGlobal('data');
         this.data = data;
-        const { current, images } = data;
+        const { current, images, folderName = '', volumnIndex, filepath, isZip } = data;
         if (images.length > 0) {
           this.showOpenFileBtn = false;
-          this.setImage(images[current]);
-          this.imgSrcs = [];
-          for (const img of images) {
-            this.imgSrcs.push(this.formatImage(img));
+          if (this.comicMode === ComicModeEnum.NORMAL) {
+            this.setImage(images[current]);
+          } else {
+            this.imgSrcs = [];
+            if (isZip) {
+              for (const img of images) {
+                this.imgSrcs.push(this.getImage(img));
+              }
+              this.title = folderName
+                .split('/')
+                .filter(s => !!s)
+                .reverse()[0];
+            } else {
+              for (const img of images) {
+                this.imgSrcs.push(this.formatImage(img));
+              }
+              // TODO: title
+            }
           }
           this.ref.detectChanges();
         } else {
@@ -83,6 +97,12 @@ export class ViewerComponent implements OnInit, OnDestroy {
     return `file://${imageUrl}`;
   }
 
+  private getImage(buffer: Uint8Array, type?: string) {
+    // TODO: type
+    const url = URL.createObjectURL(new Blob([buffer.buffer], { type: 'image/png' }));
+    return this.dom.bypassSecurityTrustResourceUrl(url);
+  }
+
   private setImage(imageUrl: string): void {
     this.imgSrc = this.formatImage(imageUrl);
     this.title = getTitle(imageUrl, this.comicMode);
@@ -93,7 +113,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.comicMode === ComicModeEnum.VERTICAL) {
-      ipcRenderer.send('switchPreviousFolder');
+      ipcRenderer.send('switchPreviousFolder', this.data);
       return;
     }
     const { images } = this.data;
@@ -111,7 +131,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.comicMode === ComicModeEnum.VERTICAL) {
-      ipcRenderer.send('switchNextFolder');
+      ipcRenderer.send('switchNextFolder', this.data);
       return;
     }
     const { images, current } = this.data;

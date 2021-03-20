@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ImageData } from '../../data/data.interface';
 import { extractFiles } from './extract';
+import * as StreamZip from 'node-stream-zip';
 
 export const supportImageFileTypes = ['jpg', 'jpeg', 'png', 'apng', 'gif', 'ico', 'bmp', 'webp'];
 export const supportZipFileTypes = ['zip', 'rar', 'gz', '7z'];
@@ -20,7 +21,10 @@ function getFileName(filepath = '') {
 }
 
 function getFileType(filepath = '') {
-  return path.extname(filepath).toLowerCase().replace('.', '');
+  return path
+    .extname(filepath)
+    .toLowerCase()
+    .replace('.', '');
 }
 
 function isImage(file) {
@@ -54,21 +58,51 @@ function getImageFilesFromDir(folderPath: string, filename?: string): Promise<an
   const files = fs.readdirSync(folderPath);
 
   if (files) {
-    const imageFiles = files.filter((file) => isImage(file));
+    const imageFiles = files.filter(file => isImage(file));
     const index = imageFiles.indexOf(filename);
     data.current = index < 0 ? 0 : index;
-    data.images = imageFiles.map((file) => path.join(folderPath, file));
+    data.images = imageFiles.map(file => path.join(folderPath, file));
   }
   setGlobalData(data);
   return Promise.resolve();
 }
 
-function getImageFilesFromZip(filepath: string): Promise<any> {
-  return extractFiles(filepath)
-    .then((imageTempDir) => getImageFilesFromDir(imageTempDir))
-    .catch((err) => {
-      console.error('UNZIP ERROR', err);
-    });
+export async function getImageFilesFromZip(filepath: string, volumnIndex: number = 1): Promise<any> {
+  const zip = new StreamZip.async({ file: filepath, storeEntries: true });
+  const imageBuffer = [];
+  const entries = await zip.entries('');
+  const directories = [];
+  const files = [];
+  for (const entry of Object.values(entries)) {
+    if (entry.isDirectory) {
+      directories.push(entry);
+    } else if (entry.isFile) {
+      files.push(entry);
+    }
+  }
+  directories.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  files.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  if (volumnIndex >= directories.length) {
+    volumnIndex = 0;
+  }
+  const curDir = directories[volumnIndex];
+  const curDirName = curDir.name;
+  const curFiles = files.filter(file => file.name.startsWith(curDirName));
+  for (const entry of curFiles) {
+    const buffer = await zip.entryData(entry);
+    imageBuffer.push(buffer);
+  }
+  await zip.close();
+  const data: ImageData = {
+    current: 0,
+    images: imageBuffer,
+    folderName: curDir.name,
+    volumnIndex,
+    filepath,
+    isZip: true
+  };
+  setGlobalData(data);
+  return Promise.resolve();
 }
 
 export function getImageFiles(filepath: string): Promise<any> {
@@ -91,7 +125,7 @@ export function getNextFolder(filepath: string, switchDir: folderSwitchDirEnum):
   const parentFolder = getFolderPath(folderPath);
 
   const files = fs.readdirSync(parentFolder);
-  const dirs = files.filter((file) => isDirectory(path.join(parentFolder, file)));
+  const dirs = files.filter(file => isDirectory(path.join(parentFolder, file)));
   const length = dirs.length;
   const index = (dirs.indexOf(folderName) + switchDir + length) % length;
   return path.join(parentFolder, dirs[index]);

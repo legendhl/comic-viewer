@@ -7,7 +7,7 @@ import { localStorage } from 'electron-browser-storage';
 import { environment } from '../environments/environment';
 import { getTitle } from './utils/titleUtil';
 import { showOpenFileDialog } from './dialog';
-import { getImageFiles, getNextFolder, folderSwitchDirEnum } from './files';
+import { getImageFiles, getNextFolder, folderSwitchDirEnum, getImageFilesFromZip } from './files';
 import { ComicModeEnum } from '../config/type';
 
 export class Application {
@@ -84,8 +84,8 @@ export class Application {
 
   listen() {
     ipcMain.on('openImage', event => this.openFileAndReply(event));
-    ipcMain.on('switchNextFolder', event => this.switchNextFolder(event));
-    ipcMain.on('switchPreviousFolder', event => this.switchPreviousFolder(event));
+    ipcMain.on('switchNextFolder', (event, imageData) => this.switchNextFolder(event, imageData));
+    ipcMain.on('switchPreviousFolder', (event, imageData) => this.switchPreviousFolder(event, imageData));
   }
 
   showWindow() {
@@ -181,7 +181,13 @@ export class Application {
     });
   }
 
-  private switchFolder(event, switchDir: folderSwitchDirEnum) {
+  private switchFolder(event, switchDir: folderSwitchDirEnum, imageData) {
+    if (imageData.isZip) {
+      getImageFilesFromZip(imageData.filepath, imageData.volumnIndex + switchDir).then(_ =>
+        event.reply('imageOpened', 'ok'),
+      );
+      return;
+    }
     const folderPath = getNextFolder(global.data.images[0], switchDir);
     if (folderPath) {
       if (global.comicMode === ComicModeEnum.VERTICAL) {
@@ -193,12 +199,12 @@ export class Application {
     }
   }
 
-  private switchPreviousFolder(event) {
-    this.switchFolder(event, folderSwitchDirEnum.PREVIOUS);
+  private switchPreviousFolder(event, imageData) {
+    this.switchFolder(event, folderSwitchDirEnum.PREVIOUS, imageData);
   }
 
-  private switchNextFolder(event) {
-    this.switchFolder(event, folderSwitchDirEnum.NEXT);
+  private switchNextFolder(event, imageData) {
+    this.switchFolder(event, folderSwitchDirEnum.NEXT, imageData);
   }
 
   private storeHistory(filepath) {
