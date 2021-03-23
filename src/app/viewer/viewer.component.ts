@@ -14,11 +14,12 @@ export class ViewerComponent implements OnInit, OnDestroy {
   @ViewChild('img') imgElement: ElementRef<HTMLImageElement>;
   @ViewChild('firstImg') firstImgElement: ElementRef<HTMLImageElement>;
   showOpenFileBtn: boolean;
-  imgSrc: string;
+  imgSrc: string | SafeResourceUrl;
   imgSrcs: (string | SafeResourceUrl)[];
   comicMode: ComicModeEnum;
   title: string;
   scale: number;
+  curIndex: number;
 
   private data: ImageData;
   private globalEventRemoversArr = [];
@@ -35,27 +36,25 @@ export class ViewerComponent implements OnInit, OnDestroy {
         const data = remote.getGlobal('data');
         this.data = data;
         const { current, images, folderName = '', volumnIndex, filepath, isZip } = data;
+        this.curIndex = current;
         if (images.length > 0) {
           this.showOpenFileBtn = false;
-          if (this.comicMode === ComicModeEnum.NORMAL) {
-            this.setImage(images[current]);
-          } else {
-            this.imgSrcs = [];
-            if (isZip) {
-              for (const img of images) {
-                this.imgSrcs.push(this.getImage(img));
-              }
-              this.title = folderName
-                .split('/')
-                .filter((s) => !!s)
-                .reverse()[0];
-            } else {
-              for (const img of images) {
-                this.imgSrcs.push(this.formatImage(img));
-              }
-              this.title = getTitle(this.imgSrcs[0], this.comicMode);
+          this.imgSrcs = [];
+          if (isZip) {
+            for (const img of images) {
+              this.imgSrcs.push(this.getImage(img));
             }
+            this.title = folderName
+              .split('/')
+              .filter((s) => !!s)
+              .reverse()[0];
+          } else {
+            for (const img of images) {
+              this.imgSrcs.push(this.formatImage(img));
+            }
+            this.title = getTitle(this.imgSrcs[0], this.comicMode);
           }
+          this.setImage(images[current]);
           this.ref.detectChanges();
         } else {
           console.error('no image opened');
@@ -80,6 +79,9 @@ export class ViewerComponent implements OnInit, OnDestroy {
   private setComicMode(comicMode: ComicModeEnum): void {
     switch (comicMode) {
       case ComicModeEnum.NORMAL:
+        if (this.imgSrcs?.length) {
+          this.imgSrc = this.imgSrcs[this.curIndex];
+        }
         document.querySelector('body').style.cssText = 'height: 100%; overflow-y: hidden;';
         break;
       case ComicModeEnum.FOLIO:
@@ -116,11 +118,12 @@ export class ViewerComponent implements OnInit, OnDestroy {
       ipcRenderer.send('switchPreviousFolder', this.data);
       return;
     }
-    const { images } = this.data;
-    const length = images.length;
+    // const { images } = this.data;
+    // const length = images.length;
+    const length = this.imgSrcs.length;
     if (length > 0) {
-      this.data.current = (this.data.current - 1 + length) % length;
-      this.setImage(images[this.data.current]);
+      this.curIndex = (this.curIndex - 1 + length) % length;
+      this.imgSrc = this.imgSrcs[this.curIndex];
     } else {
       console.error('no image opened');
     }
@@ -134,12 +137,14 @@ export class ViewerComponent implements OnInit, OnDestroy {
       ipcRenderer.send('switchNextFolder', this.data);
       return;
     }
-    const { images, current } = this.data;
-    const length = images.length;
+    // const { images, current } = this.data;
+    // const length = images.length;
+    const length = this.imgSrcs.length;
     if (length > 0) {
-      if (current + 1 < length) {
-        this.data.current = (current + 1) % length;
-        this.setImage(images[this.data.current]);
+      if (this.curIndex + 1 < length) {
+        this.curIndex++;
+        // this.data.current = (current + 1) % length;
+        this.imgSrc = this.imgSrcs[this.curIndex];
       } else {
         ipcRenderer.send('switchNextFolder');
       }

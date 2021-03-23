@@ -21,7 +21,7 @@ export class Application {
 
   constructor() {
     global.data = { current: 0, images: [] };
-    localStorage.getItem('comic-mode').then(mode => {
+    localStorage.getItem('comic-mode').then((mode) => {
       global.comicMode = mode || ComicModeEnum.VERTICAL;
     });
     this.baseUrl = new URL(environment.indexHtmlUrl);
@@ -87,7 +87,7 @@ export class Application {
   }
 
   listen() {
-    ipcMain.on('openImage', event => this.openFileAndReply(event));
+    ipcMain.on('openImage', (event) => this.openFileAndReply(event));
     ipcMain.on('switchNextFolder', (event, imageData) => this.switchNextFolder(event, imageData));
     ipcMain.on('switchPreviousFolder', (event, imageData) => this.switchPreviousFolder(event, imageData));
   }
@@ -105,7 +105,7 @@ export class Application {
       // await localStorage.clear();
       const historyStr: string = await localStorage.getItem('history');
       const histories: History[] = JSON.parse(historyStr || '[]');
-      const historiesMenu = histories.map(history => {
+      const historiesMenu = histories.map((history) => {
         return {
           label: history.menuName,
           click: () => {
@@ -165,10 +165,10 @@ export class Application {
   private openFileByHistory(history: History) {
     const { isZip, filepath, volumnIndex } = history;
     if (isZip) {
-      getImageFilesFromZip(filepath, volumnIndex).then(_ => this.instance.webContents.send('imageOpened', 'ok'));
+      getImageFilesFromZip(filepath, volumnIndex).then((_) => this.instance.webContents.send('imageOpened', 'ok'));
     } else {
       if (filepath) {
-        getImageFiles(filepath).then(_ => this.instance.webContents.send('imageOpened', 'ok'));
+        getImageFiles(filepath).then((_) => this.instance.webContents.send('imageOpened', 'ok'));
       } else {
         this.instance.webContents.send('imageOpened', 'failed');
       }
@@ -176,7 +176,7 @@ export class Application {
   }
 
   private openFile(onSuccess, onFail) {
-    showOpenFileDialog().then(filepath => {
+    showOpenFileDialog().then((filepath) => {
       if (filepath) {
         this.storeHistory(filepath);
         getImageFiles(filepath).then(onSuccess);
@@ -188,21 +188,21 @@ export class Application {
 
   private openFileAndSend() {
     this.openFile(
-      _ => this.instance.webContents.send('imageOpened', 'ok'),
+      (_) => this.instance.webContents.send('imageOpened', 'ok'),
       () => this.instance.webContents.send('imageOpened', 'failed'),
     );
   }
 
   private openFileAndReply(event) {
     this.openFile(
-      _ => event.reply('imageOpened', 'ok'),
+      (_) => event.reply('imageOpened', 'ok'),
       () => event.reply('imageOpened', 'failed'),
     );
   }
 
   private switchFolder(event, switchDir: folderSwitchDirEnum, imageData) {
-    if (imageData.isZip) {
-      getImageFilesFromZip(imageData.filepath, imageData.volumnIndex + switchDir).then(_ =>
+    if (imageData?.isZip) {
+      getImageFilesFromZip(imageData.filepath, imageData.volumnIndex + switchDir).then((_) =>
         event.reply('imageOpened', 'ok'),
       );
       this.replaceZipHistory(imageData, imageData.volumnIndex + switchDir);
@@ -213,7 +213,7 @@ export class Application {
       if (global.comicMode === ComicModeEnum.VERTICAL) {
         this.replaceHistory(folderPath);
       }
-      getImageFiles(folderPath).then(_ => event.reply('imageOpened', 'ok'));
+      getImageFiles(folderPath).then((_) => event.reply('imageOpened', 'ok'));
     } else {
       event.reply('imageOpened', 'failed');
     }
@@ -229,7 +229,7 @@ export class Application {
 
   private storeHistory(filepath) {
     const fileName = getTitle(filepath, global.comicMode);
-    localStorage.getItem('history').then(historiesStr => {
+    localStorage.getItem('history').then((historiesStr) => {
       let histories: History[] = JSON.parse(historiesStr || '[]');
       const isZip = isZipFile(filepath);
       if (isZip) {
@@ -243,7 +243,7 @@ export class Application {
   }
 
   private replaceZipHistory(imageData, newVolumnIndex) {
-    localStorage.getItem('history').then(historiesStr => {
+    localStorage.getItem('history').then((historiesStr) => {
       let histories: History[] = JSON.parse(historiesStr || '[]');
       const oldHistory = histories.shift();
       const newHistory = { ...oldHistory, volumnIndex: newVolumnIndex };
@@ -266,7 +266,7 @@ export class Application {
 
   private replaceHistory(filepath) {
     const filename = basename(filepath);
-    localStorage.getItem('history').then(historiesStr => {
+    localStorage.getItem('history').then((historiesStr) => {
       let histories: History[] = JSON.parse(historiesStr || '[]');
       histories.unshift({ filename, filepath });
       histories = histories.slice(0, 10);
