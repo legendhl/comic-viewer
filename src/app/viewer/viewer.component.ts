@@ -47,7 +47,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
               }
               this.title = folderName
                 .split('/')
-                .filter(s => !!s)
+                .filter((s) => !!s)
                 .reverse()[0];
             } else {
               for (const img of images) {
@@ -69,7 +69,7 @@ export class ViewerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.globalEventRemoversArr.forEach(remover => remover());
+    this.globalEventRemoversArr.forEach((remover) => remover());
     this.globalEventRemoversArr = [];
   }
 

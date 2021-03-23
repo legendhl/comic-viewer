@@ -53,6 +53,10 @@ button:disabled {
 
 .title {
   position: fixed;
+  width: calc(100% - 160px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   left: 0;
   right: 0;
   top: 0;
@@ -69,6 +73,10 @@ button:disabled {
 .oper-button {
   display: block;
   float: right;
+}
+
+#btn-mode {
+  cursor: pointer;
 }
 
 .main {
